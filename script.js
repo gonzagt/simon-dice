@@ -1,3 +1,11 @@
+/**En esta oportunidad, estoy programando un típico juego de "Simon says"
+   o "Simón dice". El mismo consiste en memorizar una serie de patrones
+   de "luces" (que en realidad son colores cambiados) y replicarlos para
+   poder ganar. Fallar en uno de estos patrones, automáticamente te hace
+   perder el juego.*/
+
+// Comenzamos declarando las variables que vamos a utilizar a nivel global
+
 const celeste = document.getElementById('celeste')
 const violeta = document.getElementById('violeta')
 const naranja = document.getElementById('naranja')
@@ -5,23 +13,34 @@ const verde = document.getElementById('verde')
 const btnEmpezar = document.getElementById('btnEmpezar')
 const FINAL_LEVEL = 10
 
+// Declaramos la clase a utilizar, y todos sus métodos
+
 class Juego {
+
     constructor() {
         this.inicializar()
         this.generarSecuencia()
         setTimeout(this.nextLevel, 500)
     }
-
+    
     inicializar() {
         this.nextLevel = this.nextLevel.bind(this)
         this.elegirColor = this.elegirColor.bind(this)
-        btnEmpezar.classList.add('hide')
+        this.toggleBtnEmpezar()
         this.level = 1
         this.colores = {
             celeste,
             violeta,
             naranja,
             verde
+        }
+    }
+
+    toggleBtnEmpezar() {
+        if (btnEmpezar.classList.contains('hide')) {
+            btnEmpezar.classList.remove('hide')
+        } else {
+            btnEmpezar.classList.add('hide')
         }
     }
 
@@ -100,23 +119,58 @@ class Juego {
         const nombreColor = ev.target.dataset.color
         const numeroColor = this.colorANumero(nombreColor)
         this.prenderColor2(nombreColor)
-        console.log(nombreColor)
+        // console.log(nombreColor) ---> Descomentar para hacer trampa
         if (numeroColor === this.secuencia[this.sublevel]) {
             this.sublevel++
             if (this.sublevel === this.level) {
                 this.level++
                 this.delEventClick()
                 if (this.level === FINAL_LEVEL+1) {
-                    // Ganó
+                    this.win()
                 } else {
                     setTimeout(this.nextLevel, 2000)
                 }
             }
         } else {
-            // Perdió
+            this.delEventClick()
+            this.lose()
         }
     }
+
+    win() {
+
+        const self = this
+        const success = () => alertify.success('Juego reiniciado.', 2)
+        const error = () => alertify.error('¡Hasta luego!', 2)
+        
+        alertify.confirm('¡Felicitaciones!', '¡Ganaste el juego! ¿Te gustaría jugar de nuevo?', function(){success()},function(){error()})
+            .set({ 
+                'labels': { ok: '¡Dale!', cancel: 'Nope' }, 
+                transition: 'slide', 
+                'onok': function () { success(), self.inicializar() },
+                'oncancel': function () { error()}
+            })
+            .show();
+    }
+
+    lose() {
+
+        const self = this
+        const success = () => alertify.success('Juego reiniciado.', 2)
+        const error = () => alertify.error('¡Hasta luego!', 2)
+
+        alertify.confirm('¡Qué mal!', 'Perdiste el juego... :( ¿Te gustaría jugar de nuevo?', function(){success()}, function(){error()})
+            .set({
+                'labels': { ok: '¡Dale!', cancel: 'Nope' },
+                transition: 'slide',
+                'onok': function () { success(), self.inicializar() },
+                'oncancel': function () { error() }
+            })
+            .show();
+    }
 }
+
+// Finalmente, la función más importante, y que da inicio a toda la lógica del juego.
 
 function empezarJuego() {
     window.juego = new Juego()
